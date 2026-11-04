@@ -1,214 +1,135 @@
-# State_variable_R_project
+# COAT State Variable Figures
 
-A modern, well-structured R project with tools for code quality, reproducibility, and collaboration, with support for VSCode and Copilot.
+Reusable, interactive figures for state variables from the COAT data portal.
 
-## Features
+The long-term goal is to provide a general system for calculating, exploring,
+and presenting state-variable figures on an existing COAT website. The project
+will support state variables from multiple COAT data modules while keeping the
+data processing, plotting, and website presentation layers separate.
 
-✨ **Quality Tools**
-- **[Prek](https://github.com/j178/prek)**: Automated code checks and linting
-- **[Air](https://posit-dev.github.io/air/)**: Code formatting to maintain consistency
+## Project goal
 
-🎯 **Modern Workflows**
-- **[Pixi](https://pixi.sh/)**: Reproducible environment management
-- **[Radian](https://github.com/randy3k/radian)**: Enhanced R REPL with better UX
-- **Git Hooks**: Automatic pre-commit checks
+The current workflow creates static figures locally and stores them in Box.
+Those figures are not interactive and the plotting code is difficult to reuse
+across modules.
 
-📚 **Best Practices**
-- Organized directory structure (data, R, tests, vignettes)
-- Environment variables for portable paths
-- GitHub Actions CI/CD workflows
+This project aims to provide a general workflow that:
 
-🔧 **Developer Experience**
-- VS Code integration
-- Consistent coding style
-- Reproducible environments
+1. Downloads or reads state-variable data from the COAT data portal.
+2. Calculates or prepares state-variable summaries.
+3. Validates the resulting data.
+4. Creates figures using reusable plotting functions.
+5. Stores the generated figures in a predictable location.
+6. Makes the figures available to the existing Increo website through links.
 
-## Quick Start
+The first implementation will focus on generating figures reliably. Interactive
+web-app functionality may be added later if it is useful for development,
+exploration, or internal quality control.
 
-### Prerequisites
+## Workflow
 
-- [Pixi](https://pixi.sh/) - Package and environment manager
-- [Git](https://git-scm.com/) - Version control
-- [Air](https://posit-dev.github.io/air/) - Formatter
+```text
+COAT data portal
+        |
+        v
+Download source or state-variable data
+        |
+        v
+Calculate and validate state variables
+        |
+        v
+Create standardised plotting data
+        |
+        v
+Generate figures
+        |
+        v
+Store figures and metadata
+        |
+        v
+Publish files or links
+        |
+        v
+Existing Increo website
+```
+The current idea is for the website to link to generated figures. The website does not run the download and calculation workflow when a user views a figure.
 
-### Setup
+## Initial state variable
 
-1. **Clone the repository (or initialize it)**
+`V85_snowbed_dwarf_shrub_abundance_intensive`: dwarf shrub abundance in snowbed habitats on the Varanger Peninsula. The first figure reproduces the existing plot of mean proportion of subplots with dwarf shrub presence by year, region, and species:
 
-   - If you are starting from an existing repository:
-     ```bash
-     git clone <repository-url>
-     cd state_variable_r_project
-     ```
+- *Betula nana*
+- *Empetrum nigrum*
+- *Vaccinium myrtillus*
+- *Vaccinium vitis-idaea*
 
-   - If you just created the folder using copier:
-     ```bash
-     cd state_variable_r_project
-     git init
-     ```
+## Outputs
 
-2. ** Install the dependencies**
+- PNG figures for direct website use
+- PDF (and optionally SVG) figures for reports
+- Optional interactive HTML figures
+- Standardised data file used to create each figure
+- Metadata file describing the figure and its source data
 
-   ```bash
-   pixi install
-   ```
+Required formats will be agreed with the Increo maintainers and can be set per state variable.
 
-2. **Enable git hooks** (optional but recommended)
-   ```bash
-   pixi run prek install
-   ```
+## Repository structure
 
-## VS Code Setup
-
-### Install Extensions
-
-Install these recommended extensions for the best experience
-
-### Running R Code
-
-#### Open R Terminal
-
-Use the R extension to open an interactive R terminal:
-
-1. Open the Command Palette (`Ctrl+Shift+P`)
-2. Search for **"R: Create R terminal"**
-3. An R console will open in the integrated terminal
-4. Run R commands directly in the console
-
-#### Run R File
-
-Execute R code from your editor:
-
-- **Run selected line/block**: `Ctrl+Enter`
-- **Run entire file**: `Ctrl+Shift+Enter`
-- Right-click on file → **"Run"** or **"Source"**
-
-## Common Tasks
-
-### Run R Scripts
-
-```bash
-pixi run Rscript scripts/my-script.R
+```text
+R/               Reusable functions: data access, processing, validation, plotting
+state_variables/ Per-state-variable calculations, metadata and configuration
+scripts/         Commands for download, calculation, figures and publishing
+figures/         Generated figures
+app/             Optional local app for exploring data and figures
+tests/           Automated tests
+docs/            Project documentation
 ```
 
-### Interactive R Development
+## Getting started
+
+Requires [R](https://www.r-project.org/), [Pixi](https://pixi.sh/), [Git](https://git-scm.com/), [Air](https://posit-dev.github.io/air/) (formatting) and [Prek](https://github.com/j178/prek) (checks). Structure based on the [NINA R project template](https://github.com/NINAnor/template-r).
 
 ```bash
-pixi run radian
+git clone <repository-url>
+cd coat-state-variable-figures
+pixi install
+pixi task list
 ```
 
-### Format Code
+Before committing:
 
-Check formatting:
-```bash
-pixi run air format . --check
-```
-
-Auto-format code:
 ```bash
 pixi run air format .
-```
-
-### Environment Variables
-
-Define project paths in `.Renviron`:
-
-```r
-PROJECT_DATA_DIR=data/
-PROJECT_OUTPUT_DIR=output/
-PROJECT_SCRIPTS_DIR=R/
-```
-
-Use them in code:
-```r
-data_dir <- Sys.getenv("PROJECT_DATA_DIR", "data/")
-input_file <- file.path(data_dir, "raw", "mydata.csv")
-```
-
-## Tools
-
-### Pixi
-Manages dependencies and R version. Ensures everyone uses the same environment.
-
-**Useful commands:**
-- `pixi install` - Set up environment
-- `pixi shell` - Activate environment
-- `pixi task list` - See available tasks
-
-### Prek
-Automated code quality checks on git commits.
-
-**Useful commands:**
-- `pixi run prek install` - Enable git hooks
-- `pixi run prek --all-files` - Run all checks manually
-
-### Air
-Consistent code formatting for R.
-
-**Useful commands:**
-- `pixi run air format . --check` - Check formatting
-- `pixi run air format .` - Auto-format all files
-
-### Radian
-Enhanced R REPL with better syntax highlighting and command history.
-
-```bash
-pixi run radian
-```
-
-## Development Workflow
-
-```bash
-# 1. Enter the environment
-pixi shell
-
-# 2. Make changes and test interactively
-pixi run radian
-
-# 3. Check code quality
-# NOTE: this is optional, if you install prek hooks, these checks will run automatically on commit
-pixi run air format . --check
 pixi run prek --all-files
-
-# 4. Commit
-git add .
-git commit -m "Your message"
-git push
 ```
 
-## GitHub Actions
+## COAT data access
 
-The project includes CI/CD workflows that automatically:
-- Check code formatting
-- Run all quality checks
-- Validate the build
+Never commit credentials. Provide the API key as an environment variable, for example in a local, untracked `.Renviron` file:
 
-These run on every push and pull request.
-
-## Tips
-
-1. **Use `Sys.getenv()` for paths** - Makes your code portable across machines
-2. **Enable prek hooks** - Catches issues before you commit
-
-## Troubleshooting
-
-**Rebuild environment**
 ```bash
-pixi install --no-lockfile
-pixi install
+export COAT_API_KEY="your-api-key"
 ```
+
+```r
+coat_api_key <- Sys.getenv("COAT_API_KEY")
+```
+
+The original COAT scripts use `api_COAT`; this project uses `COAT_API_KEY`.
+
+## Status
+
+Under development. Next steps:
+
+1. Add a small example
+2. Refactor the existing snowbed shrub-abundance preparation code
+3. Generate the first figure and compare it with the existing Box figure
+4. Add automated tests
+5. Agree output formats and publication mechanism with Increo
+6. Add further state variables
 
 ## License
 
-See LICENSE file for details.
+See `LICENSE`.
+```
 
-## Contributing
-
-1. Make changes in a feature branch
-2. Run `pixi run air format .` and `pixi run prek --all-files`
-3. Push and create a pull request
-4. CI checks run automatically
-
----
-
-**Happy coding!** 🚀
