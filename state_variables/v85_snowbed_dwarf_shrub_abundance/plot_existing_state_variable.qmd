@@ -1,5 +1,46 @@
 ---
-title: "plot_existing_state_variable"
-format: html
+title: "Dwarf Shrub Abundance in Snowbeds"
+subtitle: "COAT state variable V85"
+author: "Suaiba Amina Salahuddin based on work by Hanna Böhner"
+date: 05/11/2026
+format:
+  html:
+    toc: false
+    self-contained: true
+    theme: cosmo
+    code-fold: true
+    code-tools: true
+execute:
+  echo: false
+  warning: false
+  message: false
 ---
 
+The figure uses the existing state variable from the
+[COAT data portal](https://data.coat.no/state-variable/v85_snowbed_dwarf_shrub_abundance_intensive_v2).
+
+The figure is interactive. You can:
+
+- Hover over points to inspect values.
+- Zoom and pan.
+- Hide or show species using the legend.
+- Reset the view using the plot controls.
+
+## Source and attribution
+
+This document is based on the existing plotting script:
+
+```text
+state_variable_figure_v85_dwarf_shrub_abundance.Rmd
+```
+by Hanna Böhner.
+
+The original script was adapted to:
+
+- Use Quarto and HTML output.
+- Create an interactive Plotly figure.
+- Use the existing state variable from the COAT data portal.
+- Avoid saving figures to Box.
+- Avoid installing packages while rendering.
+- Avoid uploading or modifying data on the COAT data portal.
+- Produce an output suitable for later publication through GitHub Pages.
