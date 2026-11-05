@@ -26,7 +26,25 @@ The first implementation will focus on generating figures reliably. Interactive
 web-app functionality may be added later if it is useful for development,
 exploration, or internal quality control.
 
-## Workflow
+## Overview
+
+There are two ways to work with state variables. Both should end in the same standardised plotting data, so the same plotting functions work across state variables and modules.
+
+**Workflow 1: plot an existing state variable (default).** Download a state variable that already exists on the COAT data portal and plot it, without recalculating. This does not create a new version or modify the portal.
+
+```text
+Existing state variable on COAT portal -> Download -> Prepare plotting data -> Generate figures -> Store/publish figures
+```
+
+**Workflow 2: calculate and publish a new version (when needed).** Use this when new source data, a new year, a correction, or a changed method requires a new version. The existing COAT calculation scripts are the reference implementation, for example [`calculate_state_variable_shrub_abundance_snowbeds.R`](https://github.com/COATnor/small_rodent_module/blob/main/state_variable_scripts/calculate_state_variable_shrub_abundance_snowbeds.R). They download source data, calculate the state variable, create a new version, upload files and update metadata. This repository may call, adapt, or refactor them.
+
+```text
+Source data on COAT portal -> Calculate -> Validate -> Create version, upload, update metadata -> Plot via Workflow 1
+```
+
+Calculation and upload are always separate from figure generation. Creating a figure never creates a new version or uploads anything to the portal.
+
+## Workflow summary
 
 ```text
 COAT data portal
@@ -35,7 +53,7 @@ COAT data portal
 Download source or state-variable data
         |
         v
-Calculate and validate state variables
+Calculate or download exisiting state variables
         |
         v
 Create standardised plotting data
@@ -63,16 +81,6 @@ The current idea is for the website to link to generated figures. The website do
 - *Vaccinium myrtillus*
 - *Vaccinium vitis-idaea*
 
-## Outputs
-
-- PNG figures for direct website use
-- PDF (and optionally SVG) figures for reports
-- Optional interactive HTML figures
-- Standardised data file used to create each figure
-- Metadata file describing the figure and its source data
-
-Required formats will be agreed with the Increo maintainers and can be set per state variable.
-
 ## Repository structure
 
 ```text
@@ -85,7 +93,7 @@ tests/           Automated tests
 docs/            Project documentation
 ```
 
-## Getting started
+## 1. Getting started
 
 Requires [R](https://www.r-project.org/), [Pixi](https://pixi.sh/), [Git](https://git-scm.com/), [Air](https://posit-dev.github.io/air/) (formatting) and [Prek](https://github.com/j178/prek) (checks). Structure based on the [NINA R project template](https://github.com/NINAnor/template-r).
 
@@ -132,58 +140,42 @@ Restart RStudio, or reload the file with `readRenviron(".Renviron")` from RStudi
 ```r
 nzchar(Sys.getenv("api_COAT"))  # should be TRUE
 ```
+## 2. Run the workflow
 
-### Test data download from data portal
+## 3. Optional checks
 
-To test if you can download data from the data portal using the API key you can run `scripts/test_download.R`. This script downloads one year of snowbed shrub-abundance source data using the existing COAT download helper, and prints the number of rows and columns, the column names, and the first rows. It does not upload data, change anything on the COAT portal, or save data in the repository.
+These are not required. They only confirm that downloading and calculating work on your machine. Neither uploads anything, changes the COAT portal, or saves data in the repository. Both require `ckanr` and `dplyr` to be installed already (they never install packages) and `api_COAT` to be set.
 
-Run it in one of three ways:
+**`scripts/test_download.R`** downloads one year of snowbed shrub-abundance source data and prints row and column counts, column names, and the first rows.
+
+**`scripts/test_calculation.R`** downloads one year (currently 2024) of source data from `v_snowbed_shrub_abundance_intensive_v4`, calculates the state variable with `calculate_snowbed_shrub_abundance()` (from `state_variables/v85_snowbed_dwarf_shrub_abundance/calculate_state_variable.R`), prints the result, and writes it to a temporary file whose path is printed. Change `year <- 2024` in the script to test another year.
 
 ```r
-# RStudio Console
 source("scripts/test_download.R")
-```
-
-- **Editor:** open the file, select all, and click **Run**. Run the whole file, since partial runs may miss packages or functions.
-- **Terminal** (Tools → Terminal → New Terminal), from the project root:
-
-```bash
-Rscript scripts/test_download.R
-```
-
-A successful run prints `Download successful.` followed by row and column counts.
-
-### Test state variable calculation
-
-`scripts/test_calculation.R` checks that a state variable can be calculated locally from portal data for one year (currently 2024). It:
-
-1. Downloads `V_snowbed_shrub_abundance_intensive_2024.txt` from the `v_snowbed_shrub_abundance_intensive_v4` dataset
-2. Calculates the state variable using `calculate_snowbed_shrub_abundance()` from `state_variables/v85_snowbed_dwarf_shrub_abundance/calculate_state_variable.R`
-3. Prints the number of source and result rows, the column names, and the first rows
-4. Writes the result to a temporary file (`V85_snowbed_dwarf_shrub_abundance_intensive_<year>.txt`) whose path is printed
-
-It does not upload anything, modify the COAT portal, or save data in the repository.
-
-Run it from the Rstudio console:
-
-```r
-# RStudio Console
 source("scripts/test_calculation.R")
 ```
-To test another year, change `year <- 2024` in the script.
 
-A successful run prints `Source data downloaded.`, `State variable calculated.`, the result preview, and the temporary output path.
+A successful download prints `Download successful.`; a successful calculation prints `State variable calculated.`
+
+## Outputs from repository
+
+- PNG figures for direct website use
+- PDF (and optionally SVG) figures for reports
+- Optional interactive HTML figures
+- Standardised data file used to create each figure
+- Metadata file describing the figure and its source data
+
+Required formats will be agreed with the Increo maintainers and can be set per state variable.
 
 ## Status
 
 Under development. Next steps:
 
-1. Add a small example
-2. Refactor the existing snowbed shrub-abundance preparation code
-3. Generate the first figure and compare it with the existing Box figure
-4. Add automated tests
-5. Agree output formats and publication mechanism with Increo
-6. Add further state variables
+1. Refactor the existing snowbed shrub-abundance code
+2. Generate the first figure from the existing portal state variable and compare it with the existing Box figure
+3. Add automated tests
+4. Agree output formats and publication mechanism with Increo
+5. Add further state variables
 
 ## License
 
