@@ -7,6 +7,8 @@ and presenting state-variable figures on an existing COAT website. The project
 will support state variables from multiple COAT data modules while keeping the
 data processing, plotting, and website presentation layers separate.
 
+The first implementation is an interactive HTML figure rendered from a Quarto document, with a view to publishing it through GitHub Pages.
+
 ## Project goal
 
 The current workflow creates static figures locally and stores them in Box.
@@ -22,9 +24,6 @@ This project aims to provide a general workflow that:
 5. Stores the generated figures in a predictable location.
 6. Makes the figures available to the existing Increo website through links.
 
-The first implementation will focus on generating figures reliably. Interactive
-web-app functionality may be added later if it is useful for development,
-exploration, or internal quality control.
 
 ## Overview
 
