@@ -32,7 +32,7 @@ source(
 )
 
 source(
-  "state_variables/v85_snowbed_dwarf_shrub_abundance/calculate.R"
+  "state_variables/v85_snowbed_dwarf_shrub_abundance/calculate_state_variable.R"
 )
 
 api_key <- Sys.getenv("api_COAT")
