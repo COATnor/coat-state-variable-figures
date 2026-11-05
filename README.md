@@ -105,17 +105,53 @@ pixi run prek --all-files
 
 ## COAT data access
 
-Never commit credentials. Provide the API key as an environment variable, for example in a local, untracked `.Renviron` file:
+Data are downloaded from the [COAT data portal](https://data.coat.no), which requires a **COAT API key**. The key must never be committed, hard-coded in scripts, or shared in the README!
 
-```bash
-export COAT_API_KEY="your-api-key"
-```
+The download code reads the key from the environment variable `api_COAT`:
 
 ```r
-coat_api_key <- Sys.getenv("COAT_API_KEY")
+Sys.getenv("api_COAT")
 ```
 
-The original COAT scripts use `api_COAT`; this project uses `COAT_API_KEY`.
+### Configure the key locally
+
+Create a `.Renviron` file in RStudio:
+
+```text
+api_COAT=your-real-coat-api-key
+```
+
+Make sure it is ignored by Git:
+
+```bash
+echo ".Renviron" >> .gitignore
+```
+
+Restart RStudio, or reload the file with `readRenviron(".Renviron")` from RStudio console. Check that the key is available without printing it:
+
+```r
+nzchar(Sys.getenv("api_COAT"))  # should be TRUE
+```
+
+### Test data download from data portal
+
+To test if you can download data from the data portal using the API key you can run `scripts/test_download.R`. This script downloads one year of snowbed shrub-abundance source data using the existing COAT download helper, and prints the number of rows and columns, the column names, and the first rows. It does not upload data, change anything on the COAT portal, or save data in the repository.
+
+Run it in one of three ways:
+
+```r
+# RStudio Console
+source("scripts/test_download.R")
+```
+
+- **Editor:** open the file, select all, and click **Run**. Run the whole file, since partial runs may miss packages or functions.
+- **Terminal** (Tools → Terminal → New Terminal), from the project root:
+
+```bash
+Rscript scripts/test_download.R
+```
+
+A successful run prints `Download successful.` followed by row and column counts.
 
 ## Status
 
