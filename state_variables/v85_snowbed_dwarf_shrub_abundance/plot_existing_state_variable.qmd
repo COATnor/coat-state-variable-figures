@@ -45,4 +45,281 @@ The original script was adapted to:
 - Avoid uploading or modifying data on the COAT data portal.
 - Produce an output suitable for later publication through GitHub Pages.
 
+```{r}
+#| label: setup
+#| include: false
+
+required_packages <- c(
+  "ckanr",
+  "dplyr",
+  "plotly"
+)
+
+missing_packages <- required_packages[
+  !vapply(
+    required_packages,
+    requireNamespace,
+    quietly = TRUE,
+    FUN.VALUE = logical(1)
+  )
+]
+
+if (length(missing_packages) > 0L) {
+  stop(
+    "The following R packages are missing: ",
+    paste(missing_packages, collapse = ", "),
+    ". Install them once before rendering this document."
+  )
+}
+
+suppressPackageStartupMessages({
+  library(ckanr)
+  library(dplyr)
+  library(plotly)
+})
+
+source(
+  "https://raw.githubusercontent.com/COATnor/data_management_scripts/master/download_data_from_coat_data_portal.R"
+)
+
+if (!nzchar(Sys.getenv("api_COAT"))) {
+  stop(
+    "The environment variable 'api_COAT' is not available. ",
+    "Add it to your local .Renviron file before rendering."
+  )
+}
+
+ckanr::ckanr_setup(
+  url = "https://data.coat.no",
+  key = Sys.getenv("api_COAT")
+)
+```
+
+```{r}
+#| label: download-data
+#| include: false
+
+years <- 2009:2024
+
+filenames <- paste0(
+  "V85_snowbed_dwarf_shrub_abundance_intensive_",
+  years,
+  ".txt"
+)
+
+dat_list <- download_coat_data(
+  name = "v85_snowbed_dwarf_shrub_abundance_intensive_v2",
+  filenames = filenames,
+  store = "session"
+)
+
+if (length(dat_list) == 0L) {
+  stop("No data were downloaded.")
+}
+
+dat <- dplyr::bind_rows(dat_list)
+
+if (nrow(dat) == 0L) {
+  stop("The downloaded data contain no rows.")
+}
+```
+
+```{r}
+#| label: prepare-data
+#| include: false
+
+species_codes <- c(
+  "bet_nan",
+  "emp_nig",
+  "vac_myr",
+  "vac_vit"
+)
+
+species_labels <- c(
+  bet_nan = "Betula nana",
+  emp_nig = "Empetrum nigrum",
+  vac_myr = "Vaccinium myrtillus",
+  vac_vit = "Vaccinium vitis-idaea"
+)
+
+species_colours <- c(
+  "Betula nana" = "#468f9b",
+  "Empetrum nigrum" = "#df8600",
+  "Vaccinium myrtillus" = "#D44100",
+  "Vaccinium vitis-idaea" = "#925A00"
+)
+
+dat_site <- dat |>
+  dplyr::filter(
+    v_species %in% species_codes,
+    sn_locality != "ifjordfjellet",
+    t_year != 2017
+  ) |>
+  dplyr::group_by(
+    sn_region,
+    sn_locality,
+    sn_section,
+    sn_site,
+    t_year,
+    v_species
+  ) |>
+  dplyr::summarise(
+    v_abundance = sum(v_abundance, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::mutate(
+    proportion = v_abundance / 48
+  )
+
+dat_plot <- dat_site |>
+  dplyr::group_by(
+    sn_region,
+    t_year,
+    v_species
+  ) |>
+  dplyr::summarise(
+    n = sum(!is.na(proportion)),
+    proportion_mean = mean(proportion, na.rm = TRUE),
+    standard_deviation = sd(proportion, na.rm = TRUE),
+    standard_error = standard_deviation / sqrt(n),
+    t_critical = ifelse(
+      n > 1,
+      stats::qt(0.975, df = n - 1),
+      NA_real_
+    ),
+    lower_ci = proportion_mean - t_critical * standard_error,
+    upper_ci = proportion_mean + t_critical * standard_error,
+    .groups = "drop"
+  ) |>
+  dplyr::mutate(
+    lower_ci = dplyr::if_else(
+      is.na(lower_ci),
+      proportion_mean,
+      pmax(lower_ci, 0)
+    ),
+    upper_ci = dplyr::if_else(
+      is.na(upper_ci),
+      proportion_mean,
+      pmin(upper_ci, 1)
+    ),
+    full_species = unname(species_labels[v_species]),
+    colour = unname(species_colours[full_species]),
+    hover_text = paste0(
+      "Species: ", full_species,
+      "<br>Region: ", sn_region,
+      "<br>Year: ", t_year,
+      "<br>Mean proportion: ",
+      round(proportion_mean, 3),
+      "<br>Lower 95% CI: ",
+      round(lower_ci, 3),
+      "<br>Upper 95% CI: ",
+      round(upper_ci, 3),
+      "<br>Number of sites: ", n
+    )
+  )
+```
+
+## Interactive figure
+
+```{r}
+#| label: interactive-figure
+#| fig-width: 10
+#| fig-height: 6
+
+species_present <- unique(dat_plot$full_species)
+
+p <- plotly::plot_ly()
+
+for (species_name in species_present) {
+  species_data <- dat_plot |>
+    dplyr::filter(full_species == species_name)
+
+  species_colour <- unique(species_data$colour)
+
+  p <- p |>
+    plotly::add_ribbons(
+      data = species_data,
+      x = ~t_year,
+      ymin = ~lower_ci,
+      ymax = ~upper_ci,
+      name = paste0(species_name, " 95% CI"),
+      legendgroup = species_name,
+      fillcolor = species_colour,
+      line = list(color = "transparent"),
+      opacity = 0.20,
+      hoverinfo = "skip",
+      showlegend = FALSE
+    )
+
+  p <- p |>
+    plotly::add_trace(
+      data = species_data,
+      x = ~t_year,
+      y = ~proportion_mean,
+      type = "scatter",
+      mode = "lines+markers",
+      name = species_name,
+      legendgroup = species_name,
+      line = list(
+        color = species_colour,
+        width = 3
+      ),
+      marker = list(
+        color = species_colour,
+        size = 7
+      ),
+      text = ~hover_text,
+      hoverinfo = "text"
+    )
+}
+
+p |>
+  plotly::layout(
+    title = list(
+      text = "Dwarf shrub abundance in snowbeds"
+    ),
+    xaxis = list(
+      title = "Year",
+      dtick = 1
+    ),
+    yaxis = list(
+      title = "Proportion of subplots with dwarf shrubs",
+      range = c(0, 1),
+      tickformat = ".0%"
+    ),
+    hovermode = "x unified",
+    legend = list(
+      title = list(text = "Species")
+    )
+  ) |>
+  plotly::config(
+    displaylogo = FALSE,
+    responsive = TRUE,
+    modeBarButtonsToRemove = c(
+      "lasso2d",
+      "select2d"
+    )
+  )
+```
+
+## Data and provenance
+
+The data were downloaded from the COAT data portal using the existing state
+variable:
+
+```text
+v85_snowbed_dwarf_shrub_abundance_intensive_v2
+```
+
+The following filters were applied:
+
+- Species: `bet_nan`, `emp_nig`, `vac_myr`, and `vac_vit`
+- Locality excluded: `ifjordfjellet`
+- Year excluded: `2017`
+- Number of subplots per site: `48`
+- Years included: `2009` to `2024`
+
+The figure is generated from an existing published state variable on the COAT Data Portal. This
+document does not calculate a new state-variable version, upload files, or
+modify metadata on the COAT data portal.
 
