@@ -36,7 +36,7 @@ There are two ways to work with state variables. Both should end in the same sta
 Existing state variable on COAT portal -> Download -> Prepare plotting data -> Generate figures -> Store/publish figures
 ```
 
-**Workflow 2: calculate and publish a new version (when needed).** Use this when new source data, a new year, a correction, or a changed method requires a new version. The existing COAT calculation scripts are the reference implementation, for example [`calculate_state_variable_shrub_abundance_snowbeds.R`](https://github.com/COATnor/small_rodent_module/blob/main/state_variable_scripts/calculate_state_variable_shrub_abundance_snowbeds.R). They download source data, calculate the state variable, create a new version, upload files and update metadata. This repository may call, adapt, or refactor them.
+**Workflow 2: calculate and publish a new state variable version (when needed).** Use this when new source data, a new year, a correction, or a changed method requires a new state variable version. The existing COAT calculation scripts are the reference implementation, for example [`calculate_state_variable_shrub_abundance_snowbeds.R`](https://github.com/COATnor/small_rodent_module/blob/main/state_variable_scripts/calculate_state_variable_shrub_abundance_snowbeds.R). They download source data, calculate the state variable, create a new version, upload files and update metadata. This repository may call, adapt, or refactor them.
 
 ```text
 Source data on COAT portal -> Calculate -> Validate -> Create version, upload, update metadata -> Plot via Workflow 1
@@ -151,9 +151,9 @@ Run scripts either in the RStudio Console (`source("scripts/<name>.R")`) or in a
 3. Generate figures
 4. Store figures and metadata (see [Outputs](#outputs))
 
-### Workflow 2: calculate and publish a new version
+### Workflow 2: calculate and publish a new state variable version
 
-1. Download source data and calculate the state variable (adapting the existing COAT calculation script: https://github.com/COATnor/small_rodent_module/blob/main/state_variable_scripts/calculate_state_variable_shrub_abundance_snowbeds.R
+1. Download source data and calculate the state variable (adapting the existing COAT calculation script: [`calculate_state_variable_shrub_abundance_snowbeds.R`](https://github.com/COATnor/small_rodent_module/blob/main/state_variable_scripts/calculate_state_variable_shrub_abundance_snowbeds.R)
 2. Validate the result
 3. Upload files and update metadata on the COAT portal (deliberate, explicit step)
 4. Plot the published version using Workflow 1
