@@ -148,7 +148,22 @@ Run scripts either in the RStudio Console (`source("scripts/<name>.R")`) or in a
 1. Download the state variable from the COAT portal
 2. Prepare standardised plotting data
 3. Generate figures
-4. Store figures and metadata (see [Outputs](#outputs))
+4. Store figures and metadata
+
+For V85 dwarf shrub abundance in snowbeds from the small rodent module, the figure is a Quarto document in the respective state variable directory:
+```text
+state_variables/v85_snowbed_dwarf_shrub_abundance/v85_dwarf_shrub_abundance_figure.qmd
+```
+To produce figures render the quarto document, can do this in RStudio but also Python.
+
+The quarto document:
+
+1. Downloads the yearly files (2009 to 2024) of `v85_snowbed_dwarf_shrub_abundance_intensive_v2` from the COAT portal
+2. Filters and summarises the data
+3. Creates the **interactive** Plotly figure
+4. Writes an **HTML** file next to the `.qmd`
+
+Because the HTML is not self-contained, the output includes a supporting `*_files/` folder. Keep it together with the HTML file when storing or publishing.
 
 ### Workflow 2: calculate and publish a new state variable version
 
@@ -174,11 +189,9 @@ A successful download prints `Download successful.`; a successful calculation pr
 
 ## Outputs from repository
 
-- PNG figures for direct website use
-- PDF (and optionally SVG) figures for reports
-- Optional interactive HTML figures
-- Standardised data file used to create each figure
-- Metadata file describing the figure and its source data
+- Interactive HTML figure (current output), rendered with Quarto and Plotly
+- Later, as needed: PNG or SVG figures for direct website use, PDF for reports
+- Later, as needed: standardised data file and metadata file for each figure
 
 Required formats will be agreed with the Increo maintainers and can be set per state variable.
 
