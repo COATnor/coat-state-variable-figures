@@ -6,7 +6,7 @@ date: 05/11/2026
 format:
   html:
     toc: false
-    self-contained: true
+    self-contained: false
     theme: cosmo
     code-fold: true
     code-tools: true

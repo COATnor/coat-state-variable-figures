@@ -61,3 +61,7 @@ rsconnect/
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+
+# Rendered Quarto output
+*.html
+*_files/
