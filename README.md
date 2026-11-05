@@ -142,6 +142,22 @@ nzchar(Sys.getenv("api_COAT"))  # should be TRUE
 ```
 ## 2. Run the workflow
 
+Run scripts either in the RStudio Console (`source("scripts/<name>.R")`) or in a terminal (`Rscript scripts/<name>.R`). Script names below may change as the project develops.
+
+### Workflow 1: download and plot an existing state variable
+
+1. Download the state variable from the COAT portal
+2. Prepare standardised plotting data
+3. Generate figures
+4. Store figures and metadata (see [Outputs](#outputs))
+
+### Workflow 2: calculate and publish a new version
+
+1. Download source data and calculate the state variable (adapting the existing COAT calculation script: https://github.com/COATnor/small_rodent_module/blob/main/state_variable_scripts/calculate_state_variable_shrub_abundance_snowbeds.R
+2. Validate the result
+3. Upload files and update metadata on the COAT portal (deliberate, explicit step)
+4. Plot the published version using Workflow 1
+   
 ## 3. Optional checks
 
 These are not required. They only confirm that downloading and calculating work on your machine. Neither uploads anything, changes the COAT portal, or saves data in the repository. Both require `ckanr` and `dplyr` to be installed already (they never install packages) and `api_COAT` to be set.
