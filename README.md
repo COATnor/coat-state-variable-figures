@@ -153,6 +153,27 @@ Rscript scripts/test_download.R
 
 A successful run prints `Download successful.` followed by row and column counts.
 
+### Test state variable calculation
+
+`scripts/test_calculation.R` checks that a state variable can be calculated locally from portal data for one year (currently 2024). It:
+
+1. Downloads `V_snowbed_shrub_abundance_intensive_2024.txt` from the `v_snowbed_shrub_abundance_intensive_v4` dataset
+2. Calculates the state variable using `calculate_snowbed_shrub_abundance()` from `state_variables/v85_snowbed_dwarf_shrub_abundance/calculate_state_variable.R`
+3. Prints the number of source and result rows, the column names, and the first rows
+4. Writes the result to a temporary file (`V85_snowbed_dwarf_shrub_abundance_intensive_<year>.txt`) whose path is printed
+
+It does not upload anything, modify the COAT portal, or save data in the repository.
+
+Run it from the Rstudio console:
+
+```r
+# RStudio Console
+source("scripts/test_calculation.R")
+```
+To test another year, change `year <- 2024` in the script.
+
+A successful run prints `Source data downloaded.`, `State variable calculated.`, the result preview, and the temporary output path.
+
 ## Status
 
 Under development. Next steps:
