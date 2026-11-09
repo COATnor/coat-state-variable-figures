@@ -6,9 +6,10 @@ date: 05/11/2026
 format:
   html:
     toc: false
-    self-contained: false
+    self-contained: true
     theme: cosmo
     code-fold: true
+    
     code-tools: true
 execute:
   echo: false
@@ -226,6 +227,16 @@ dat_plot <- dat_site |>
 #| fig-width: 10
 #| fig-height: 6
 
+# Set a dynamic y-axis limit based on the highest confidence interval.
+# Add 10% headroom above the maximum value.
+y_max <- max(dat_plot$upper_ci, na.rm = TRUE)
+
+if (!is.finite(y_max) || y_max <= 0) {
+  y_max <- 0.1
+}
+
+y_axis_max <- min(1, y_max * 1.10)
+
 species_present <- unique(dat_plot$full_species)
 
 p <- plotly::plot_ly()
@@ -284,8 +295,8 @@ p |>
     ),
     yaxis = list(
       title = "Proportion of subplots with dwarf shrubs",
-      range = c(0, 1),
-      tickformat = ".0%"
+      range = c(0, y_axis_max),
+      tickformat = ".2f"
     ),
     hovermode = "x unified",
     legend = list(
@@ -301,7 +312,14 @@ p |>
     )
   )
 ```
+::: {.figure-caption}
 
+**Dwarf shrub abundance in snowbeds on the Varanger Peninsula.** Dwarf shrub
+abundance is calculated as the mean proportion of subplots with dwarf shrub
+presence. Visit the [COAT data portal](https://data.coat.no/state-variable/v85_snowbed_dwarf_shrub_abundance_intensive_v1)
+for more information about the sampling design and dataset.
+
+:::
 ## Data and provenance
 
 The data were downloaded from the COAT data portal using the existing state
