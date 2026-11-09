@@ -42,6 +42,18 @@ jobs:
             any::dplyr
             any::plotly
 
+      - name: Check COAT API secret
+        env:
+          api_COAT: ${{ secrets.COAT_API_KEY }}
+        run: |
+          if [ -z "$api_COAT" ]; then
+            echo "COAT_API_KEY is missing"
+            exit 1
+          fi
+
+          echo "COAT API key is available"
+          echo "COAT API key length: ${#api_COAT}"
+
       - name: Render Quarto figure
         env:
           api_COAT: ${{ secrets.COAT_API_KEY }}
@@ -52,6 +64,8 @@ jobs:
 
       - name: Create GitHub Pages landing page
         run: |
+          mkdir -p _site
+
           cat > _site/index.html <<'EOF'
           <!doctype html>
           <html lang="en">
