@@ -62,6 +62,9 @@ rsconnect/
 .pixi/*
 !.pixi/config.toml
 
-# Rendered Quarto output
-*.html
-*_files/
+# GitHub Pages build output
+_site/
+
+# Quarto output generated beside source documents
+state_variables/**/plot_existing_state_variable.html
+state_variables/**/plot_existing_state_variable_files/
