@@ -1,0 +1,99 @@
+name: Render and publish Quarto figure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "state_variables/**"
+      - ".github/workflows/publish-quarto-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: "release"
+
+      - name: Install R packages
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::ckanr
+            any::dplyr
+            any::plotly
+
+      - name: Render Quarto figure
+        env:
+          api_COAT: ${{ secrets.COAT_API_KEY }}
+        run: |
+          quarto render \
+            state_variables/v85_snowbed_dwarf_shrub_abundance/plot_existing_state_variable.qmd \
+            --output-dir _site/figures/v85_snowbed_dwarf_shrub_abundance
+
+      - name: Create GitHub Pages landing page
+        run: |
+          cat > _site/index.html <<'EOF'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>COAT State Variable Figures</title>
+          </head>
+          <body>
+            <h1>COAT State Variable Figures</h1>
+            <p>
+              Interactive figures generated from state variables in the
+              COAT data portal.
+            </p>
+            <h2>Available figures</h2>
+            <ul>
+              <li>
+                <a href="figures/v85_snowbed_dwarf_shrub_abundance/plot_existing_state_variable.html">
+                  Dwarf shrub abundance in snowbeds
+                </a>
+              </li>
+            </ul>
+          </body>
+          </html>
+          EOF
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
