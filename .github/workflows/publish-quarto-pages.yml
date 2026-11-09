@@ -1,42 +1,3 @@
-name: Test COAT API access
-env:
-  api_COAT: ${{ secrets.COAT_API_KEY }}
-run: |
-  if [ -z "$api_COAT" ]; then
-    echo "COAT_API_KEY is empty or unavailable"
-    exit 1
-  fi
-
-  echo "COAT_API_KEY is available"
-  echo "Key length: ${#api_COAT}"
-
-  response_file="$(mktemp)"
-
-  http_status=$(
-            curl --silent --show-error \
-              --output "$response_file" \
-              --write-out "%{http_code}" \
-              --request GET \
-              --header "Authorization: $api_COAT" \
-              "https://data.coat.no/api/3/action/package_show?id=v85_snowbed_dwarf_shrub_abundance_intensive_v2"
-          )
-
-  echo "COAT API HTTP status: $http_status"
-
-  if [ "$http_status" != "200" ]; then
-    echo "COAT API request failed. Response:"
-    cat "$response_file"
-    exit 1
-  fi
-
-  if grep -q '"success":true' "$response_file"; then
-    echo "COAT API authentication and dataset lookup succeeded"
-  else
-    echo "COAT API returned an unsuccessful response:"
-    cat "$response_file"
-            exit 1
-  fi
-
 name: Render and publish Quarto figure
 
 on:
@@ -92,6 +53,44 @@ jobs:
 
           echo "COAT API key is available"
           echo "COAT API key length: ${#api_COAT}"
+          
+      - name: Test COAT API access
+        env:
+          api_COAT: ${{ secrets.COAT_API_KEY }}
+        run: |
+          if [ -z "$api_COAT" ]; then
+            echo "COAT_API_KEY is empty or unavailable"
+            exit 1
+          fi
+
+          response_file="$(mktemp)"
+
+          http_status=$(
+            curl \
+              --silent \
+              --show-error \
+              --output "$response_file" \
+              --write-out "%{http_code}" \
+              --request GET \
+              --header "Authorization: $api_COAT" \
+              "https://data.coat.no/api/3/action/package_show?id=v85_snowbed_dwarf_shrub_abundance_intensive_v2"
+          )
+
+          echo "COAT API HTTP status: $http_status"
+
+          if [ "$http_status" != "200" ]; then
+            echo "COAT API request failed. Response:"
+            cat "$response_file"
+            exit 1
+          fi
+
+          if grep -q '"success"[[:space:]]*:[[:space:]]*true' "$response_file"; then
+            echo "COAT API authentication and dataset lookup succeeded"
+          else
+            echo "COAT API returned an unsuccessful response:"
+            cat "$response_file"
+            exit 1
+          fi
 
       - name: Render Quarto figure
         env:
