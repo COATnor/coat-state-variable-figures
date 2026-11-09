@@ -198,12 +198,9 @@ Required formats will be agreed with the Increo maintainers and can be set per s
 ## Status
 
 Under development. Next steps:
-
-1. Refactor the existing snowbed shrub-abundance code
-2. Generate the first figure from the existing portal state variable and compare it with the existing Box figure
-3. Add automated tests
-4. Agree output formats and publication mechanism with Increo
-5. Add further state variables
+1. Add automated tests
+2. Agree output formats and publication mechanism with Increo
+3. Add further state variables
 
 ## License
 
