@@ -71,9 +71,11 @@ jobs:
               --show-error \
               --output "$response_file" \
               --write-out "%{http_code}" \
-              --request GET \
+              --request POST \
               --header "Authorization: $api_COAT" \
-              "https://data.coat.no/api/3/action/package_show?id=v85_snowbed_dwarf_shrub_abundance_intensive_v2"
+              --header "Content-Type: application/json" \
+              --data '{"id":"v85_snowbed_dwarf_shrub_abundance_intensive_v2"}' \
+              "https://data.coat.no/api/3/action/package_show"
           )
 
           echo "COAT API HTTP status: $http_status"
