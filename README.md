@@ -203,12 +203,109 @@ A successful download prints `Download successful.`; a successful calculation pr
 
 Required formats will be agreed with the Increo maintainers and can be set per state variable.
 
+## 4. Current workaround to publish state variable figures to stable link for Increo website
+
+GitHub-hosted runners are currently unable to download the private COAT data
+directly because requests from GitHub Actions are blocked by Cloudflare.
+
+The current workaround is:
+
+```text
+Local RStudio
+        |
+        v
+Render the Quarto document locally
+using the local COAT API key
+        |
+        v
+Save the rendered HTML figure and
+supporting files under docs/
+        |
+        v
+Commit the rendered files to GitHub
+        |
+        v
+GitHub Actions publishes docs/
+to GitHub Pages
+```
+The Quarto document is rendered locally because the local RStudio environment
+can access the COAT data portal:
+
+```text
+state_variables/v85_snowbed_dwarf_shrub_abundance/
+plot_existing_state_variable.qmd
+```
+
+The local rendering script is:
+
+```text
+scripts/render_v85_figure.sh
+```
+
+Run it from the project root:
+
+```bash
+./scripts/render_v85_figure.sh
+```
+
+The script downloads the existing state-variable data, prepares the plotting
+data, creates the interactive Plotly figure, and places the rendered output
+under:
+
+```text
+docs/
+└── figures/
+    └── v85_snowbed_dwarf_shrub_abundance/
+        ├── plot_existing_state_variable.html
+        └── plot_existing_state_variable_files/
+```
+
+The HTML file and the supporting `*_files/` directory must be kept together.
+
+The GitHub Actions workflow does not render the Quarto document or access the
+COAT API. It only publishes the locally rendered contents of `docs/` to GitHub
+Pages:
+
+```text
+.github/workflows/workaround_publish-quarto-pages.yml
+```
+
+The published figure will eventually be available at a URL similar to:
+
+```text
+https://coatnor.github.io/coat-state-variable-figures/figures/v85_snowbed_dwarf_shrub_abundance/plot_existing_state_variable.html
+```
+
+### Current publication status
+
+Publication is currently waiting for the repository visibility and GitHub
+account configuration to be clarified.
+
+GitHub Pages for private repositories requires an appropriate GitHub
+organization plan, such as GitHub Enterprise. If that is not available, the
+repository must be made public before the figure can be published through
+GitHub Pages.
+
+Until this is resolved, the figure can be rendered and tested locally, but the
+GitHub Pages publication workflow cannot be completed.
+
 ## Status
 
-Under development. Next steps:
-1. Add automated tests
-2. Agree output formats and publication mechanism with Increo
-3. Add further state variables
+Under development:
+
+The current interactive figure can be rendered locally from the existing V85
+state variable. A temporary GitHub Pages workflow has been prepared, but
+publication is waiting for the repository visibility and GitHub organization
+configuration to be clarified.
+
+
+Next steps:
+1. Resolve whether the repository can be made public or whether an appropriate
+   GitHub organization plan is available.
+2. Publish the first interactive figure through GitHub Pages.
+3. Add automated tests
+4. Agree output formats and publication mechanism with Increo
+5. Add further state variables
 
 ## License
 
