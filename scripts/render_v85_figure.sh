@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Find the repository root based on the location of this script.
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+SOURCE_DIR="$PROJECT_ROOT/state_variables/v85_snowbed_dwarf_shrub_abundance"
+SOURCE_FILE="plot_existing_state_variable.qmd"
+
+OUTPUT_DIR="$PROJECT_ROOT/docs/figures/v85_snowbed_dwarf_shrub_abundance"
+OUTPUT_FILE="plot_existing_state_variable.html"
+SUPPORT_DIR="plot_existing_state_variable_files"
+
+echo "Project root: $PROJECT_ROOT"
+echo "Source directory: $SOURCE_DIR"
+echo "Output directory: $OUTPUT_DIR"
+
+mkdir -p "$OUTPUT_DIR"
+
+# Remove old rendered output from both locations.
+rm -f "$SOURCE_DIR/$OUTPUT_FILE"
+rm -rf "$SOURCE_DIR/$SUPPORT_DIR"
+
+rm -f "$OUTPUT_DIR/$OUTPUT_FILE"
+rm -rf "$OUTPUT_DIR/$SUPPORT_DIR"
+
+# Render locally from the directory containing the QMD.
+(
+  cd "$SOURCE_DIR"
+  quarto render "$SOURCE_FILE"
+)
+
+# Check that Quarto produced the expected HTML.
+if [[ ! -f "$SOURCE_DIR/$OUTPUT_FILE" ]]; then
+  echo "Could not find rendered HTML:"
+  echo "$SOURCE_DIR/$OUTPUT_FILE"
+  exit 1
+fi
+
+# Move the HTML to the GitHub Pages publication directory.
+mv "$SOURCE_DIR/$OUTPUT_FILE" "$OUTPUT_DIR/$OUTPUT_FILE"
+
+# Move supporting files produced when self-contained is false.
+if [[ -d "$SOURCE_DIR/$SUPPORT_DIR" ]]; then
+  mv "$SOURCE_DIR/$SUPPORT_DIR" "$OUTPUT_DIR/$SUPPORT_DIR"
+fi
+
+echo
+echo "Published local files:"
+find "$OUTPUT_DIR" -maxdepth 2 -print
+

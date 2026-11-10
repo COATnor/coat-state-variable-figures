@@ -44,7 +44,7 @@ vignettes/*.pdf
 .Renviron
 
 # pkgdown site
-docs/
+#docs/
 
 # translation temp files
 po/*~
@@ -68,3 +68,11 @@ _site/
 # Quarto output generated beside source documents
 state_variables/**/plot_existing_state_variable.html
 state_variables/**/plot_existing_state_variable_files/
+
+# GitHub Pages source and rendered publication files
+# These are intentionally tracked.
+!docs/
+!docs/index.html
+!docs/figures/
+!docs/figures/v85_snowbed_dwarf_shrub_abundance/
+!docs/figures/v85_snowbed_dwarf_shrub_abundance/plot_existing_state_variable.html

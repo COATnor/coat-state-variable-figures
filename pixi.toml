@@ -21,3 +21,6 @@ R_HOME = "$CONDA_PREFIX/lib/R"
 PIXI_R_LIBS = "$CONDA_PREFIX/lib/R/library"
 R_LIBS = "$PIXI_R_LIBS"
 R_LIBS_USER = "$PIXI_R_LIBS"
+
+[tasks]
+render-v85-figure = "bash scripts/render_v85_figure.sh"
