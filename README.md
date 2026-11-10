@@ -96,6 +96,14 @@ docs/            Project documentation
 
 Requires [R](https://www.r-project.org/), [Pixi](https://pixi.sh/), [Git](https://git-scm.com/), [Air](https://posit-dev.github.io/air/) (formatting) and [Prek](https://github.com/j178/prek) (checks). Structure based on the [NINA R project template](https://github.com/NINAnor/template-r).
 
+### Tools used in this project
+
+- **Pixi** manages the project environment. It installs R, the R packages and any other dependencies at the versions recorded in the project's lock file, and it provides named tasks (`pixi task list`). This means everyone who clones the repository gets the same setup with a single `pixi install`, which avoids "it works on my machine" problems and keeps results reproducible over time, including when the project is handed over to someone else.
+- **Air** is a fast code formatter for R. It rewrites scripts into one consistent style (indentation, spacing, line breaks), so code looks the same regardless of who wrote it. This keeps the code easy to read and review, and it keeps Git diffs small, because they show real changes rather than formatting differences.
+- **Prek** runs automated checks on the repository, such as formatting, trailing whitespace and accidentally committed files, before a commit is made (it is a faster, drop-in alternative to `pre-commit`). Catching these problems early keeps the repository clean and helps prevent mistakes like committing secrets or badly formatted code.
+
+Pixi sets up the environment, Air formats the code, and Prek makes sure the checks pass before changes are committed.
+
 ```bash
 git clone <repository-url>
 cd coat-state-variable-figures
