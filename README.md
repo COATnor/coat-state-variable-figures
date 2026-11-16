@@ -24,7 +24,7 @@ saved in this GitHub repository.
 ```
 Creating a figure never changes anything on the COAT data portal !
 
-**Why two separte steps?** The first script has to run on your own computer because GitHub is blocked by Cloudflare (a security service) when they try to download private COAT data with an API key. Once that is solved, steps 1 and 2 could be done in one automatic step without saving figures in the repository. Another alternative is to store the figures on the COAT data portal.
+**Why two seperate steps?** The first script has to run on your own computer because GitHub is blocked by Cloudflare (a security service) when they try to download private COAT data with an API key. Once that is solved, steps 1 and 2 could be done in one automatic step without saving figures in the repository. Another alternative is to store the figures on the COAT data portal.
 
 ---
 
@@ -94,15 +94,38 @@ git push
 
 ### Step 2: Publish with GitHub Pages
 
-When the new files are pushed, GitHub automatically publishes everything in `docs/` (via `.github/workflows/workaround_publish-quarto-pages.yml`). This gives the figure a stable URL:
+Publishing is done automatically by a GitHub Actions workflow ([`workaround_publish-quarto-pages.yml`](https://github.com/COATnor/coat-state-variable-figures/blob/main/.github/workflows/workaround_publish-quarto-pages.yml)). It takes everything in the `docs/` folder and puts it on the web with GitHub Pages. It does **not** download COAT data or make figures. It only publishes the files created in Step 1 which were added to GitHub. Every time changes are made to the code and committed to GitHub this process happens automatically.
+
+This gives the figure a stable URL:
 
 ```text
 https://coatnor.github.io/coat-state-variable-figures/figures/v85_snowbed_dwarf_shrub_abundance/plot_existing_state_variable.html
 ```
+Use this URL in Increo. It stays the same each time you update the figure! Generated URL can also be found by clicking on Settings tab on the top and then Pages.
 
-Use this URL in Increo. It stays the same each time you update the figure.
+#### Alternatively, run the publishing workflow manually (on the GitHub website)
+1. Go to the repository on GitHub: <https://github.com/COATnor/coat-state-variable-figures>
+2. Click the **Actions** tab.
+3. In the left-hand list, click the workflow **Publish locally rendered Quarto figure**.
+4. Click the **Run workflow** button (right side), choose the `main` branch, and click the green **Run workflow** button.
+5. Wait about 1 to 2 minutes and refresh the page. A green tick means it worked. A red cross means it failed. If failed, click the run to see the error message.
+
+
+#### Running the publishing workflow at fixed intervals (to be added later)
+
+Later, the workflow can be set to run automatically, for example every week. This is done by adding a `schedule` to the `on:` section of the workflow file:
+
+```yaml
+on:
+  workflow_dispatch:        # keeps the manual "Run workflow" button
+  schedule:
+    - cron: "0 6 * * 1"     # every Monday at 06:00 UTC
+```
+
+The five values in `cron` are minute, hour, day of month, month and day of week. Times are in UTC.
 
 > **Current status:** Have made and published the state variables from 2009-2024 for V85_snowbed_dwarf_shrub_abundance_intensive dataset using the two step process.
+
 ---
 
 ## Later plans
@@ -138,6 +161,7 @@ tests/           Automated tests
 ```
 
 Structure based on the [NINA R project template](https://github.com/NINAnor/template-r).
+
 ---
 
 ## Optional: calculating a new state variable version
