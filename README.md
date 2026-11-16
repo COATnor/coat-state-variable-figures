@@ -180,5 +180,5 @@ source("scripts/test_calculation.R")   # prints "State variable calculated."
 ## License
 
 See `LICENSE`.
-```
+
 
