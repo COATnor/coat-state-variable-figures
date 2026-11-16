@@ -22,7 +22,7 @@ The figure shows the mean proportion of subplots with dwarf shrub presence by ye
 saved in this GitHub repository.
 2. Publish the figure with GitHub Pages, which gives it a fixed URL.
 ```
-Creating a figure never changes anything on the COAT data portal!
+Creating a figure never changes anything on the COAT data portal !
 
 **Why two separte steps?** The first script has to run on your own computer because GitHub is blocked by Cloudflare (a security service) when they try to download private COAT data with an API key. Once that is solved, steps 1 and 2 could be done in one automatic step without saving figures in the repository. Another alternative is to store the figures on the COAT data portal.
 
