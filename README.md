@@ -7,305 +7,151 @@ and presenting state-variable figures on an existing COAT website. The project
 will support state variables from multiple COAT data modules while keeping the
 data processing, plotting, and website presentation layers separate.
 
-The first implementation is an interactive HTML figure rendered from a Quarto document, with a view to publishing it through GitHub Pages.
+The first implementation is an interactive HTML figure rendered from a Quarto document which is published through GitHub Pages.
 
-## Project goal
+**Currently available example figure on GitHub pages:** [`V85_snowbed_dwarf_shrub_abundance_intensive (dwarf shrub abundance in snowbeds, Varanger Peninsula)`](https://coatnor.github.io/coat-state-variable-figures/figures/v85_snowbed_dwarf_shrub_abundance/plot_existing_state_variable.html)
 
-The current workflow creates static figures locally and stores them in Box.
-Those figures are not interactive and the plotting code is difficult to reuse
-across modules.
+The figure shows the mean proportion of subplots with dwarf shrub presence by year, region and species (*Betula nana*, *Empetrum nigrum*, *Vaccinium myrtillus*, *Vaccinium vitis-idaea*).
 
-This project aims to provide a general workflow that:
+---
 
-1. Downloads or reads state-variable data from the COAT data portal.
-2. Calculates or prepares state-variable summaries.
-3. Validates the resulting data.
-4. Creates figures using reusable plotting functions.
-5. Stores the generated figures in a predictable location.
-6. Makes the figures available to the existing Increo website through links.
-
-
-## Overview
-
-There are two ways to work with state variables. Both should end in the same standardised plotting data, so the same plotting functions work across state variables and modules.
-
-**Workflow 1: plot an existing state variable (default).** Download a state variable that already exists on the COAT data portal and plot it, without recalculating. This does not create a new version or modify the portal.
+## How the current process works
 
 ```text
-Existing state variable on COAT portal -> Download -> Prepare plotting data -> Generate figures -> Store/publish figures
+1. Run a script that downloads the state variable from the COAT data portal and makes the figure. The figure created is currently 
+saved in this GitHub repository.
+2. Publish the figure with GitHub Pages, which gives it a fixed URL.
 ```
+Creating a figure never changes anything on the COAT data portal!
 
-**Workflow 2: calculate and publish a new state variable version (when needed).** Use this when new source data, a new year, a correction, or a changed method requires a new state variable version. The existing COAT calculation scripts are the reference implementation, for example [`calculate_state_variable_shrub_abundance_snowbeds.R`](https://github.com/COATnor/small_rodent_module/blob/main/state_variable_scripts/calculate_state_variable_shrub_abundance_snowbeds.R). They download source data, calculate the state variable, create a new version, upload files and update metadata. This repository may call, adapt, or refactor them.
+**Why two separte steps?** The first script has to run on your own computer because GitHub is blocked by Cloudflare (a security service) when they try to download private COAT data with an API key. Once that is solved, steps 1 and 2 could be done in one automatic step without saving figures in the repository. Another alternative is to store the figures on the COAT data portal.
 
-```text
-Source data on COAT portal -> Calculate -> Validate -> Create version, upload, update metadata -> Plot via Workflow 1
-```
+---
 
-Calculation and upload are always separate from figure generation. Creating a figure never creates a new version or uploads anything to the portal.
+## Before you start (one-time setup)
 
-## Workflow summary
-
-```text
-COAT data portal
-        |
-        v
-Download source or state-variable data
-        |
-        v
-Calculate or download exisiting state variables
-        |
-        v
-Create standardised plotting data
-        |
-        v
-Generate figures
-        |
-        v
-Store figures and metadata
-        |
-        v
-Publish files or links
-        |
-        v
-Existing Increo website
-```
-The current idea is for the website to link to generated figures. The website does not run the download and calculation workflow when a user views a figure.
-
-## Initial state variable
-
-`V85_snowbed_dwarf_shrub_abundance_intensive`: dwarf shrub abundance in snowbed habitats on the Varanger Peninsula. The first figure reproduces the existing plot of mean proportion of subplots with dwarf shrub presence by year, region, and species:
-
-- *Betula nana*
-- *Empetrum nigrum*
-- *Vaccinium myrtillus*
-- *Vaccinium vitis-idaea*
-
-## Repository structure
-
-```text
-R/               Reusable functions: data access, processing, validation, plotting
-state_variables/ Per-state-variable calculations, metadata and configuration
-scripts/         Commands for download, calculation, figures and publishing
-figures/         Generated figures
-app/             Optional local app for exploring data and figures
-tests/           Automated tests
-docs/            Project documentation
-```
-
-## 1. Getting started
-
-Requires [R](https://www.r-project.org/), [Pixi](https://pixi.sh/), [Git](https://git-scm.com/), [Air](https://posit-dev.github.io/air/) (formatting) and [Prek](https://github.com/j178/prek) (checks). Structure based on the [NINA R project template](https://github.com/NINAnor/template-r).
-
-### Tools used in this project
-
-- **Pixi** manages the project environment. It installs R, the R packages and any other dependencies at the versions recorded in the project's lock file, and it provides named tasks (`pixi task list`). This means everyone who clones the repository gets the same setup with a single `pixi install`, which avoids "it works on my machine" problems and keeps results reproducible over time, including when the project is handed over to someone else.
-- **Air** is a fast code formatter for R. It rewrites scripts into one consistent style (indentation, spacing, line breaks), so code looks the same regardless of who wrote it. This keeps the code easy to read and review, and it keeps Git diffs small, because they show real changes rather than formatting differences.
-- **Prek** runs automated checks on the repository, such as formatting, trailing whitespace and accidentally committed files, before a commit is made (it is a faster, drop-in alternative to `pre-commit`). Catching these problems early keeps the repository clean and helps prevent mistakes like committing secrets or badly formatted code.
-
-Pixi sets up the environment, Air formats the code, and Prek makes sure the checks pass before changes are committed.
+You need [R](https://www.r-project.org/), [RStudio](https://posit.co/download/rstudio-desktop/) and [Git](https://git-scm.com/), and a copy of this repository on your computer:
 
 ```bash
-git clone <repository-url>
-cd coat-state-variable-figures
-pixi install
-pixi task list
+git clone https://github.com/COATnor/coat-state-variable-figures.git
 ```
 
-Before committing:
+Open the project in RStudio (File > Open Project, or open the folder).
+
+### Add your COAT API key
+
+The COAT API key is a personal password that lets R download data from the portal. **Never** paste it into scripts, commit it to GitHub, or share it!
+
+1. In RStudio, create a new text file named `.Renviron` in the project folder.
+2. Put this single line in it (use your real key):
+
+   ```text
+   api_COAT=your-real-coat-api-key
+   ```
+3. Make sure Git ignores the file: `echo ".Renviron" >> .gitignore`
+4. Restart RStudio.
+5. Check that the key works (it should print `TRUE`, and does not show the key):
+
+   ```r
+   nzchar(Sys.getenv("api_COAT"))
+   ```
+
+---
+
+## Instructions for making and publishing state variable figure: V85 dwarf shrub abundance
+
+### Step 1: Make the figure (on your computer)
+
+Open the RStudio and run this script from the project folder:
+([script on GitHub](https://github.com/COATnor/coat-state-variable-figures/blob/main/scripts/render_v85_figure.sh))
+
+The script:
+
+- sets up the folders for the figure and the GitHub Pages website,
+- downloads the V85 data (yearly files) from the COAT data portal,
+- runs the Quarto document that contains the plotting code ([`plot_existing_state_variable.qmd`](https://github.com/COATnor/coat-state-variable-figures/blob/main/state_variables/v85_snowbed_dwarf_shrub_abundance/plot_existing_state_variable.qmd)),
+- saves the finished interactive figure in the `docs/` folder.
+
+The result is:
+
+```text
+docs/figures/v85_snowbed_dwarf_shrub_abundance/
+├── plot_existing_state_variable.html          <- the figure
+└── plot_existing_state_variable_files/        <- supporting files
+```
+
+**Keep the `.html` file and the `_files` folder together.** The figure does not work without the folder.
+
+To change what the figure shows on the web page (titles, text, species, layout), edit the Quarto document above and run the script again.
+
+Then save the new figure to GitHub (commit and push). In the RStudio Terminal:
 
 ```bash
-pixi run air format .
-pixi run prek --all-files
+git add docs/
+git commit -m "Update V85 figure"
+git push
 ```
 
-## COAT data access
+### Step 2: Publish with GitHub Pages
 
-Data are downloaded from the [COAT data portal](https://data.coat.no), which requires a **COAT API key**. The key must never be committed, hard-coded in scripts, or shared in the README!
-
-The download code reads the key from the environment variable `api_COAT`:
-
-```r
-Sys.getenv("api_COAT")
-```
-
-### Configure the key locally
-
-Create a `.Renviron` file in RStudio:
-
-```text
-api_COAT=your-real-coat-api-key
-```
-
-Make sure it is ignored by Git:
-
-```bash
-echo ".Renviron" >> .gitignore
-```
-
-Restart RStudio, or reload the file with `readRenviron(".Renviron")` from RStudio console. Check that the key is available without printing it:
-
-```r
-nzchar(Sys.getenv("api_COAT"))  # should be TRUE
-```
-## 2. Run the workflow
-
-Run scripts either in the RStudio Console (`source("scripts/<name>.R")`) or in a terminal (`Rscript scripts/<name>.R`). Script names below may change as the project develops.
-
-### Workflow 1: download and plot an existing state variable
-
-1. Download the state variable from the COAT portal
-2. Prepare standardised plotting data
-3. Generate figures
-4. Store figures and metadata
-
-For V85 dwarf shrub abundance in snowbeds from the small rodent module, the figure is a Quarto document in the respective state variable directory:
-```text
-state_variables/v85_snowbed_dwarf_shrub_abundance/v85_dwarf_shrub_abundance_figure.qmd
-```
-To produce figures render the quarto document, can do this in RStudio but also Python.
-
-The quarto document:
-
-1. Downloads the yearly files (2009 to 2024) of `v85_snowbed_dwarf_shrub_abundance_intensive_v2` from the COAT portal
-2. Filters and summarises the data
-3. Creates the **interactive** Plotly figure
-4. Writes an **HTML** file next to the `.qmd`
-
-Because the HTML is not self-contained, the output includes a supporting `*_files/` folder. Keep it together with the HTML file when storing or publishing.
-
-### Workflow 2: calculate and publish a new state variable version
-
-1. Download source data and calculate the state variable (adapting the existing COAT calculation script: [`calculate_state_variable_shrub_abundance_snowbeds.R`](https://github.com/COATnor/small_rodent_module/blob/main/state_variable_scripts/calculate_state_variable_shrub_abundance_snowbeds.R)
-2. Validate the result
-3. Upload files and update metadata on the COAT portal (deliberate, explicit step)
-4. Plot the published version using Workflow 1
-   
-## 3. Optional checks
-
-These are not required. They only confirm that downloading and calculating work on your machine. Neither uploads anything, changes the COAT portal, or saves data in the repository. Both require `ckanr` and `dplyr` to be installed already (they never install packages) and `api_COAT` to be set.
-
-**`scripts/test_download.R`** downloads one year of snowbed shrub-abundance source data and prints row and column counts, column names, and the first rows.
-
-**`scripts/test_calculation.R`** downloads one year (currently 2024) of source data from `v_snowbed_shrub_abundance_intensive_v4`, calculates the state variable with `calculate_snowbed_shrub_abundance()` (from `state_variables/v85_snowbed_dwarf_shrub_abundance/calculate_state_variable.R`), prints the result, and writes it to a temporary file whose path is printed. Change `year <- 2024` in the script to test another year.
-
-```r
-source("scripts/test_download.R")
-source("scripts/test_calculation.R")
-```
-
-A successful download prints `Download successful.`; a successful calculation prints `State variable calculated.`
-
-## Outputs from repository
-
-- Interactive HTML figure (current output), rendered with Quarto and Plotly
-- Later, as needed: PNG or SVG figures for direct website use, PDF for reports
-- Later, as needed: standardised data file and metadata file for each figure
-
-Required formats will be agreed with the Increo maintainers and can be set per state variable.
-
-## 4. Current workaround to publish state variable figures to stable link for Increo website
-
-GitHub-hosted runners are currently unable to download the private COAT data
-directly because requests from GitHub Actions are blocked by Cloudflare.
-
-The current workaround is:
-
-```text
-Local RStudio
-        |
-        v
-Render the Quarto document locally
-using the local COAT API key
-        |
-        v
-Save the rendered HTML figure and
-supporting files under docs/
-        |
-        v
-Commit the rendered files to GitHub
-        |
-        v
-GitHub Actions publishes docs/
-to GitHub Pages
-```
-The Quarto document is rendered locally because the local RStudio environment
-can access the COAT data portal:
-
-```text
-state_variables/v85_snowbed_dwarf_shrub_abundance/
-plot_existing_state_variable.qmd
-```
-
-The local rendering script is:
-
-```text
-scripts/render_v85_figure.sh
-```
-
-Run it from the project root:
-
-```bash
-./scripts/render_v85_figure.sh
-```
-
-The script downloads the existing state-variable data, prepares the plotting
-data, creates the interactive Plotly figure, and places the rendered output
-under:
-
-```text
-docs/
-└── figures/
-    └── v85_snowbed_dwarf_shrub_abundance/
-        ├── plot_existing_state_variable.html
-        └── plot_existing_state_variable_files/
-```
-
-The HTML file and the supporting `*_files/` directory must be kept together.
-
-The GitHub Actions workflow does not render the Quarto document or access the
-COAT API. It only publishes the locally rendered contents of `docs/` to GitHub
-Pages:
-
-```text
-.github/workflows/workaround_publish-quarto-pages.yml
-```
-
-The published figure will eventually be available at a URL similar to:
+When the new files are pushed, GitHub automatically publishes everything in `docs/` (via `.github/workflows/workaround_publish-quarto-pages.yml`). This gives the figure a stable URL:
 
 ```text
 https://coatnor.github.io/coat-state-variable-figures/figures/v85_snowbed_dwarf_shrub_abundance/plot_existing_state_variable.html
 ```
 
-### Current publication status
+Use this URL in Increo. It stays the same each time you update the figure.
 
-Publication is currently waiting for the repository visibility and GitHub
-account configuration to be clarified.
+> **Current status:** Have made and published the state variables from 2009-2024 for V85_snowbed_dwarf_shrub_abundance_intensive dataset using the two step process.
+---
 
-GitHub Pages for private repositories requires an appropriate GitHub
-organization plan, such as GitHub Enterprise. If that is not available, the
-repository must be made public before the figure can be published through
-GitHub Pages.
+## Later plans
 
-Until this is resolved, the figure can be rendered and tested locally, but the
-GitHub Pages publication workflow cannot be completed.
+- Add further state variables and modules.
+- Create PNG/SVG/PDF versions if needed. Formats will be agreed with the Increo maintainers.
+- Add automated tests.
+- Solve the Cloudflare block so figures can be made and published in one automatic step.
 
-## Status
+---
+## Tools used in this repository
 
-Under development:
+The project uses these tools so that everyone gets the same setup and consistent code:
 
-The current interactive figure can be rendered locally from the existing V85
-state variable. A temporary GitHub Pages workflow has been prepared, but
-publication is waiting for the repository visibility and GitHub organization
-configuration to be clarified.
+- [**Pixi**](https://pixi.sh/) installs R, the R packages and other dependencies at fixed versions (`pixi install`, `pixi task list`).
+- [**Air**](https://posit-dev.github.io/air/) formats R code in one consistent style.
+- [**Prek**](https://github.com/j178/prek) runs automatic checks before each commit (formatting, accidentally committed files and secrets).
 
+```bash
+pixi install
+pixi run air format .
+pixi run prek --all-files
+```
 
-Next steps:
-1. Resolve whether the repository can be made public or whether an appropriate
-   GitHub organization plan is available.
-2. Publish the first interactive figure through GitHub Pages.
-3. Add automated tests
-4. Agree output formats and publication mechanism with Increo
-5. Add further state variables
+Repository structure:
+
+```text
+R/               Reusable functions: data access, processing, validation, plotting
+state_variables/ Per-state-variable calculations, metadata and Quarto documents
+scripts/         Scripts for download, calculation, figures and publishing
+docs/            Rendered figures that GitHub Pages publishes
+tests/           Automated tests
+```
+
+Structure based on the [NINA R project template](https://github.com/NINAnor/template-r).
+---
+
+## Optional: calculating a new state variable version
+
+Making a **new version** of a state variable (new data, a new year, a correction or a changed method) is a separate job. It is not part of making figures. Use the existing COAT calculation scripts, for example [`calculate_state_variable_shrub_abundance_snowbeds.R`](https://github.com/COATnor/small_rodent_module/blob/main/state_variable_scripts/calculate_state_variable_shrub_abundance_snowbeds.R). Calculate, validate, then upload to the COAT portal deliberately, and then make the figure as above.
+
+Two optional test scripts check that downloading and calculating work on your computer. They upload nothing and change nothing on the portal. Both need the R packages `ckanr` and `dplyr` installed and `api_COAT` set.
+
+```r
+source("scripts/test_download.R")      # prints "Download successful."
+source("scripts/test_calculation.R")   # prints "State variable calculated."
+```
+
+---
 
 ## License
 
