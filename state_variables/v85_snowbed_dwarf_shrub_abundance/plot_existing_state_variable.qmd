@@ -18,7 +18,7 @@ execute:
 ---
 
 The figure uses the existing state variable from the
-[COAT data portal](https://data.coat.no/state-variable/v85_snowbed_dwarf_shrub_abundance_intensive_v2).
+[COAT data portal](https://data.coat.no/state-variable/v85_snowbed_dwarf_shrub_abundance_intensive_v3).
 
 The figure is interactive. You can:
 
@@ -83,7 +83,7 @@ ckanr::ckanr_setup(
 #| label: download-data
 #| include: false
 
-years <- 2009:2024
+years <- 2009:2026
 
 filenames <- paste0(
   "V85_snowbed_dwarf_shrub_abundance_intensive_",
@@ -92,7 +92,7 @@ filenames <- paste0(
 )
 
 dat_list <- download_coat_data(
-  name = "v85_snowbed_dwarf_shrub_abundance_intensive_v2",
+  name = "v85_snowbed_dwarf_shrub_abundance_intensive_v3",
   filenames = filenames,
   store = "session"
 )
@@ -309,7 +309,7 @@ The data were downloaded from the COAT data portal using the existing state
 variable:
 
 ```text
-v85_snowbed_dwarf_shrub_abundance_intensive_v2
+v85_snowbed_dwarf_shrub_abundance_intensive_v3
 ```
 
 The following filters were applied:
@@ -318,7 +318,7 @@ The following filters were applied:
 - Locality excluded: `ifjordfjellet`
 - Year excluded: `2017`
 - Number of subplots per site: `48`
-- Years included: `2009` to `2024`
+- Years included: `2009` to `2026`
 
 The figure is generated from an existing published state variable on the COAT Data Portal. This
 document does not calculate a new state-variable version, upload files, or
