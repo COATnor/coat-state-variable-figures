@@ -27,24 +27,7 @@ The figure is interactive. You can:
 - Hide or show species using the legend.
 - Reset the view using the plot controls.
 
-## Source and attribution
 
-This document is based on the existing plotting script:
-
-```text
-state_variable_figure_v85_dwarf_shrub_abundance.Rmd
-```
-by Hanna Böhner.
-
-The original script was adapted to:
-
-- Use Quarto and HTML output.
-- Create an interactive Plotly figure.
-- Use the existing state variable from the COAT data portal.
-- Avoid saving figures to Box.
-- Avoid installing packages while rendering.
-- Avoid uploading or modifying data on the COAT data portal.
-- Produce an output suitable for later publication through GitHub Pages.
 
 ```{r}
 #| label: setup
@@ -341,3 +324,21 @@ The figure is generated from an existing published state variable on the COAT Da
 document does not calculate a new state-variable version, upload files, or
 modify metadata on the COAT data portal.
 
+## Source and attribution
+
+This document is based on the existing plotting script:
+
+```text
+state_variable_figure_v85_dwarf_shrub_abundance.Rmd
+```
+by Hanna Böhner.
+
+The original script was adapted to:
+
+- Use Quarto and HTML output.
+- Create an interactive Plotly figure.
+- Use the existing state variable from the COAT data portal.
+- Avoid saving figures to Box.
+- Avoid installing packages while rendering.
+- Avoid uploading or modifying data on the COAT data portal.
+- Produce an output suitable for later publication through GitHub Pages.
