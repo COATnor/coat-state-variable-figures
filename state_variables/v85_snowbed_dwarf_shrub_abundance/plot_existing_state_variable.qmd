@@ -2,7 +2,7 @@
 title: "Dwarf Shrub Abundance in Snowbeds"
 subtitle: "COAT state variable V85"
 author: "Suaiba Amina Salahuddin based on work by Hanna Böhner"
-date: 05/11/2026
+date: 11/17/2026
 format:
   html:
     toc: false
