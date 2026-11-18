@@ -274,12 +274,24 @@ p |>
     ),
     xaxis = list(
       title = "Year",
+      tickmode = "linear",
+      dtick = 1,
+      tickangle = -45,
+      tickfont = list(size = 12),
+      automargin = TRUE,
       dtick = 1
     ),
     yaxis = list(
       title = "Proportion of subplots with dwarf shrubs",
       range = c(0, y_axis_max),
-      tickformat = ".2f"
+      tickformat = ".2f",
+      automargin = TRUE
+    ),
+    margin = list(
+      b = 110,
+      l = 100,
+      r = 40,
+      t = 80
     ),
     hovermode = "x unified",
     legend = list(
