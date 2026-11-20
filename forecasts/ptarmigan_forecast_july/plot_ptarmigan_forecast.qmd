@@ -1,0 +1,197 @@
+---
+title: "plot_ptarmigan_forecast"
+author: "Kos Pepels based on work by Hanna Böhner and Suaiba Amina Salahuddin"
+date: "2026-11-20"
+format:
+  html:
+    toc: false
+    embed-resources: true
+    theme: cosmo
+    code-fold: true
+    format:
+
+    code-tools: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+The figure is interactive. You can:
+
+-   Hover over points to inspect values.
+-   Zoom and pan.
+-   Hide or show species using the legend.
+-   Reset the view using the plot controls.
+
+
+
+```{r setup}
+#| include: false
+
+library(plotly)
+library(coda)
+
+data_file <- "data_JAGS_2026_v1.rds"               # same data file as the model
+fit_file  <- "output/H1_noTS_fitto2025_fc2026.RData"    # output of H1_noTS_forecast_2026.R
+
+first_year <- 2000
+T_fit      <- 26                      # 2025 = year 26
+fc_year    <- first_year + T_fit      # 2026
+```
+
+```{r observed}
+load(data_file)                       # input.data
+y    <- input.data$y[,    1:T_fit]
+area <- input.data$area[, 1:T_fit]
+
+obs <- do.call(rbind, lapply(1:T_fit, function(t) {
+  ok <- !is.na(y[, t]) & !is.na(area[, t]) & area[, t] > 0
+  data.frame(
+    year     = first_year + t - 1,
+    obs_dens = sum(y[ok, t]) / sum(area[ok, t]),
+    obs_se   = sd(y[ok, t]) / sqrt(sum(ok)),
+    n_sites  = sum(ok)
+  )
+}))
+obs$lower_ci <- obs$obs_dens - obs$obs_se
+obs$upper_ci <- obs$obs_dens + obs$obs_se
+```
+
+
+```{r forecast}
+e <- new.env()
+load(fit_file, envir = e)
+S <- as.matrix(get(ls(e)[1], envir = e))          # draws x parameters (all chains)
+
+P_pred <- S[, grep("^P_pred\\[", colnames(S)), drop = FALSE]
+P_pred <- P_pred[, order(as.integer(gsub("\\D", "", colnames(P_pred)))), drop = FALSE]
+
+ok <- !is.na(y[, T_fit]) & !is.na(area[, T_fit]) & area[, T_fit] > 0 &
+      colSums(is.na(P_pred)) == 0
+pred_dens <- rowSums(P_pred[, ok, drop = FALSE]) / sum(area[ok, T_fit])
+
+fc <- data.frame(
+  year      = fc_year,
+  pred_mean = mean(pred_dens),
+  pred_lo   = unname(quantile(pred_dens, 0.025)),
+  pred_hi   = unname(quantile(pred_dens, 0.975)),
+  n_sites   = sum(ok)
+)
+
+# Hover text
+obs$hover_text <- sprintf(
+  "<b>Observed %d</b><br>Density: %.2f birds/km<sup>2</sup><br>+/- 1 SE: %.2f to %.2f<br>Sites: %d",
+  obs$year, obs$obs_dens, obs$lower_ci, obs$upper_ci, obs$n_sites)
+fc$hover_text <- sprintf(
+  "<b>Forecast %d (H1_noTS)</b><br>Density: %.2f birds/km<sup>2</sup><br>95%% CrI: %.2f to %.2f<br>Sites: %d",
+  fc$year, fc$pred_mean, fc$pred_lo, fc$pred_hi, fc$n_sites)
+```
+
+## Interactive figure
+
+```{r interactive-figure}
+#| fig-width: 14
+#| fig-height: 10
+obs_colour <- "#333333"
+fc_colour  <- "#D55E00"
+
+# Dynamic y-axis limit with 10% headroom
+y_max <- max(c(obs$upper_ci, fc$pred_hi), na.rm = TRUE)
+if (!is.finite(y_max) || y_max <= 0) y_max <- 1
+y_axis_max <- y_max * 1.10
+
+p <- plotly::plot_ly() |>
+  plotly::add_ribbons(
+    data = obs,
+    x = ~year,
+    ymin = ~lower_ci,
+    ymax = ~upper_ci,
+    name = "Observed +/- 1 SE",
+    legendgroup = "observed",
+    fillcolor = obs_colour,
+    line = list(color = "transparent"),
+    opacity = 0.20,
+    hoverinfo = "none",
+    showlegend = FALSE
+  ) |>
+  plotly::add_trace(
+    data = obs,
+    x = ~year,
+    y = ~obs_dens,
+    type = "scatter",
+    mode = "lines+markers",
+    name = "Observed (+/- 1 SE)",
+    legendgroup = "observed",
+    line = list(color = obs_colour, width = 3),
+    marker = list(color = obs_colour, size = 7),
+    text = ~hover_text,
+    hoverinfo = "text"
+  ) |>
+  plotly::add_trace(
+    data = fc,
+    x = ~year,
+    y = ~pred_mean,
+    type = "scatter",
+    mode = "markers",
+    name = "Forecast 2026 (95% CrI)",
+    legendgroup = "forecast",
+    marker = list(color = fc_colour, size = 12, symbol = "diamond"),
+    error_y = list(
+      type = "data",
+      symmetric = FALSE,
+      array = ~pred_hi - pred_mean,
+      arrayminus = ~pred_mean - pred_lo,
+      color = fc_colour,
+      thickness = 2,
+      width = 8
+    ),
+    text = ~hover_text,
+    hoverinfo = "text"
+  )
+
+p |>
+  plotly::layout(
+    title = list(text = ""),
+    xaxis = list(
+      title = "Year",
+      tickmode = "linear",
+      dtick = 1,
+      tickangle = -45,
+      range = c(first_year - 0.8, fc_year + 0.8),
+      tickfont = list(size = 12),
+      automargin = TRUE
+    ),
+    yaxis = list(
+      title = "Density (birds/km<sup>2</sup>)",
+      range = c(0, y_axis_max),
+      tickformat = ".1f",
+      automargin = TRUE
+    ),
+    margin = list(b = 110, l = 100, r = 40, t = 80),
+    hovermode = "x unified",
+    legend = list(title = list(text = ""))
+  ) |>
+  plotly::config(
+    displaylogo = FALSE,
+    responsive = TRUE,
+    modeBarButtonsToRemove = c("lasso2d", "select2d")
+  )
+```
+
+::: figure-caption
+**Ptarmigan forecast 2026**
+:::
+
+## Observed density 2000–2025
+
+Per year, over the sites surveyed that year: observed density = sum of counts / sum of surveyed area (birds/km²); SE = sd(counts) / √(number of sites); band = density ± 1 SE.
+## Forecast density 2026 from P_pred
+
+Per posterior draw: sum of `P_pred` over the sites surveyed in 2025 / their summed area (= `area_pred` in the model). Point = posterior mean, bars = 2.5% and 97.5% quantiles.
+## Data and provenance
+
+-   Number of line transects included: `180`
+-   Years included: `2000` to `2025`
+
+The figure is generated from an existing published state variable on the COAT Data Portal. This document does not calculate a new state-variable version, upload files, or modify metadata on the COAT data portal.
